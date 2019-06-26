@@ -29,7 +29,7 @@ int main(int argc, char *argv[]){
 	ifstream inFile(argv[1]);
 	ofstream outFile(fname);
 	ofstream lexFile(lname);
-	char buffer, past;
+	char buffer, past, pastchar;
 	past = 0;
 	int index = 0;
 	string tmp = "";
@@ -43,16 +43,18 @@ int main(int argc, char *argv[]){
 						goto HERE;
 					break;
 				case '}':
-					if(past == '{')
-						lexFile << endl;
+					if(pastchar == '{'){
+						lexFile << '%';
+						past = '%';
+					}
 				case ';':
 				case '(':
-				case ')':
-				case '{':
 				case '=':
 				case '+':
 				case '<':
 				case '>':
+				case '{':
+				case ')':
 					if(past != '\n'){
 						lexFile << endl;
 						past = '\n';
@@ -72,8 +74,8 @@ int main(int argc, char *argv[]){
 								ISCHAR(past){
 
 								} else {
-									if(past == ')'){
-										lexFile << endl;
+									if(pastchar == ')'){
+										lexFile << '%';
 									}
 									lexFile << endl;
 									past = '\n';
@@ -81,10 +83,19 @@ int main(int argc, char *argv[]){
 							}
 						}
 					}
+					ISCHAR(buffer){
+						if(pastchar == ')'){
+							lexFile << '%' << endl;
+						}
+						past = '%';
+					}
 					break;
 			}
 						lexFile << buffer;
 			HERE:
+				if(buffer != '\n'){
+					pastchar = buffer;
+				}
 				past = buffer;
 		}
 		

@@ -2,6 +2,7 @@ INDEX		TYPE		name
 0			FUNC		main
 1			VAR 		var
 2			VAR 		a
-3			VAR 		c
-4			FUNC		el
-5			FUNC		hi
+3			WHILE		WHILE
+4			VAR 		c
+5			FUNC		el
+6			FUNC		hi

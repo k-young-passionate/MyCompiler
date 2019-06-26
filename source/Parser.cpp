@@ -2,16 +2,20 @@
 #include <iostream>
 #include <string>
 #include <stack>
+#include <cstdlib>
 using namespace std;
 
 #define ISNUM(value) (value >= '0' && value<= '9')
 #define ISCHAR(value) ((value >= 'a' && value <= 'z')||(value >='A' && value <= 'Z'))
 #define ONLYWORD(value) (value != "WHILE" && value != "IF" && value != "ELSE" && value != "THEN")
+#define IGNORE(value) if(value == '%') break;
+#define POP(num) for(int i=0; i<num; i++) { s.pop(); }
 
 int main(int argc, char *argv[]){
 	string fname = argv[1];
 	string oname = argv[1];
 	string line;
+	string a,b,c,d;
 	bool isFinished;
 	int state = 0;
 	stack<string> s;
@@ -21,13 +25,17 @@ int main(int argc, char *argv[]){
 	ofstream outFile(oname);
 	
 	while(getline(inFile, line)){
-		if(!s.empty())
 		isFinished = false;
+		if(!s.empty()){
+			cout << s.top() << endl;
+		}
+		REDUCE:
 		switch(state){
 			case 0:
+				IGNORE(line.at(0));
 				s.push("$");
 				s.push("0");
-				if(ISCHAR(line.at(1)) && ONLYWORD(line)){
+				if(ISCHAR(line.at(0)) && ONLYWORD(line)){
 					s.push(line);
 					s.push("2");
 					state = 2;
@@ -36,11 +44,13 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 1:
+				POP(3);
 				if(s.top() == "$"){
 					isFinished = true;
 				}
 				break;
 			case 2:
+				IGNORE(line.at(0));
 				if(line.at(0) == '('){
 					s.push(line);
 					s.push("2");
@@ -50,6 +60,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 3:
+				IGNORE(line.at(0));
 				if(line.at(0) == ')') {
 					s.push(line);
 					s.push("4");
@@ -59,6 +70,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 4:
+				IGNORE(line.at(0));
 				if(line.at(0) == '{'){
 					s.push(line);
 					s.push("6");
@@ -66,9 +78,14 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 5: 
-				
+				POP(8);
+				s.push("prog");
+				s.push("1");
+				state = 1;
+				goto REDUCE;
 				break;
 			case 6:
+				IGNORE(line.at(0));
 				if(ISCHAR(line.at(0)) && ONLYWORD(line)){
 					s.push(line);
 					s.push("11");
@@ -86,6 +103,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 7:
+				IGNORE(line.at(0));
 				if(ISCHAR(line.at(0)) && ONLYWORD(line)){
 					s.push(line);
 					s.push("11");
@@ -107,9 +125,21 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 8:
-
+				if((ISCHAR(line.at(0)) && ONLYWORD(line)) || line.at(0) == "}" || line == "IF" || line == "WHILE"){
+					POP(2);
+					a = s.top();
+					s.push("slist");
+					if(atoi(a) == 7){
+						s.push("7");
+						state = 7;
+						goto REDUCE;
+					} else {
+						goto ERROR;
+					}
+				}	
 				break;
 			case 9:
+				IGNORE(line.at(0));
 				if(line.at(0) == '('){
 					s.push(line);
 					s.push("14");
@@ -119,6 +149,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 10:
+				IGNORE(line.at(0));
 				if(line.at(0) == '('){
 					s.push(line);
 					s.push("15");
@@ -128,6 +159,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 11:
+				IGNORE(line.at(0));
 				if(line.at(0) == '='){
 					s.push(line);
 					s.push("16");
@@ -137,11 +169,22 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 12:
+				if((ISCHAR(line.at(0)) && ONLYWORD(line))||line.at(0) == '}' && line == "IF" && line == "ELSE" && line =="WHILE" && line.at(0) == '%'){
+					s.pop();
+					s.pop();
+					s.pop();
+					s.pop();
+					s.pop();
+					s.pop();
+				} else {
+					goto ERROR;
+				}
 				break;
 			case 13:
 				
 				break;
 			case 14:
+				IGNORE(line.at(0));
 				if(ISCHAR(line.at(0)) && ONLYWORD(line)){
 					s.push(line);
 					s.push("21");
@@ -155,6 +198,7 @@ int main(int argc, char *argv[]){
 				} 
 				break;
 			case 15:
+				IGNORE(line.at(0));
 				if(ISCHAR(line.at(0)) && ONLYWORD(line)){
 					s.push(line);
 					s.push("21");
@@ -168,6 +212,7 @@ int main(int argc, char *argv[]){
 				} 
 				break;
 			case 16:
+				IGNORE(line.at(0));
 				if(ISCHAR(line.at(0)) && ONLYWORD(line)){
 					s.push(line);
 					s.push("21");
@@ -181,6 +226,7 @@ int main(int argc, char *argv[]){
 				} 
 				break;
 			case 17:
+				IGNORE(line.at(0));
 				if(line.at(0) == ')'){
 					s.push(line);
 					s.push("24");
@@ -190,6 +236,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 18:
+				IGNORE(line.at(0));
 				if(line.at(0) == '>'){
 					s.push(line);
 					s.push("25");
@@ -207,6 +254,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 19:
+				IGNORE(line.at(0));
 				if(line.at(0) == ';'){
 					s.push(line);
 					s.push("17");
@@ -220,6 +268,7 @@ int main(int argc, char *argv[]){
 			case 21:
 				break;
 			case 22:
+				IGNORE(line.at(0));
 				if(line.at(0) == '}'){
 					s.push(line);
 					s.push("28");
@@ -229,6 +278,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 23:
+				IGNORE(line.at(0));
 				if(line.at(0) == ';'){
 					s.push(line);
 					s.push("29");
@@ -242,6 +292,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 24:
+				IGNORE(line.at(0));
 				if(line == "THEN"){
 					s.push(line);
 					s.push("30");
@@ -251,6 +302,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 25:
+				IGNORE(line.at(0));
 				if(ISCHAR(line.at(0)) && ONLYWORD(line)){
 					s.push(line);
 					s.push("21");
@@ -264,6 +316,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 26:
+				IGNORE(line.at(0));
 				if(ISCHAR(line.at(0)) && ONLYWORD(line)){
 					s.push(line);
 					s.push("21");
@@ -277,6 +330,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 27:
+				IGNORE(line.at(0));
 				if(ISCHAR(line.at(0)) && ONLYWORD(line)){
 					s.push(line);
 					s.push("21");
@@ -290,6 +344,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 28:
+				IGNORE(line.at(0));
 				if(line.at(0) == '{'){
 					s.push(line);
 					s.push("6");
@@ -302,6 +357,7 @@ int main(int argc, char *argv[]){
 	
 				break;
 			case 30:
+				IGNORE(line.at(0));
 				if(line.at(0) == '{'){
 					s.push(line);
 					s.push("6");
@@ -311,6 +367,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 31:
+				IGNORE(line.at(0));
 				if(line.at(0) == '+'){
 					s.push(line);
 					s.push("27");
@@ -320,6 +377,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 32:
+				IGNORE(line.at(0));
 				if(line.at(0) == '+'){
 					s.push(line);
 					s.push("27");
@@ -335,6 +393,7 @@ int main(int argc, char *argv[]){
 
 				break;
 			case 35:
+				IGNORE(line.at(0));
 				if(line == "ELSE"){
 					s.push(line);
 					s.push("36");
@@ -344,6 +403,7 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 36:
+				IGNORE(line.at(0));
 				if(line.at(0) == '{'){
 					s.push(line);
 					s.push("6");
