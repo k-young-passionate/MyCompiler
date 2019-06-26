@@ -1,5 +1,3 @@
-#define SYNTAXERROR "SYNTAX ERROR has been occured.\n"
-
 typedef enum
 {ENUM_FUNC, ENUM_VAR} TYPE_E;
 

@@ -2,7 +2,9 @@
 #include <iostream>
 #include <string>
 #include <stack>
+#include <vector>
 #include <cstdlib>
+#include "functions.hpp"
 #include "functionStructure.h"
 using namespace std;
 
@@ -12,20 +14,48 @@ using namespace std;
 #define IGNORE(value) if(value == '%') break;
 #define POP(num) for(int i=0; i<num; i++) { s.pop(); }
 
-int main(int argc, char *argv[]){
-	string fname = argv[1];
-	string oname = argv[1];
+vector<struct FUNC> func;
+vector<struct PROG> prog;
+vector<struct BLOCK> block;
+vector<struct SLIST> slist;
+vector<struct STAT> stat;
+vector<struct STAT_IF> stat_if;
+vector<struct STAT_WHILE> stat_while;
+vector<struct STAT_ASSIGN> stat_assign;
+vector<struct COND> cond;
+vector<struct EXPR> expr;
+vector<struct FACT> fact;
+
+int parser(char* filename){
+	string fname = filename;
+	string oname = filename;
 	string line;
 	string a,b,c,d;
+	
+	fname += ".lex";
+	oname += ".code";
+
+	ifstream inFile(fname);
+	ofstream outFile(oname);
+
 	bool isFinished;
 	int state = 0;
 	stack<string> s;
-	fname += ".lex";
-	oname += ".parse";
-	ifstream inFile(fname);
-	ofstream outFile(oname);
-	
-	pointer->root->word = "hi";
+
+	struct FUNC tmp_func;
+	struct PROG tmp_prog;
+	struct BLOCK tmp_block;
+	struct SLIST tmp_slist;
+	struct STAT tmp_stat;
+	struct STAT_IF tmp_stat_if;
+	struct STAT_WHILE tmp_stat_while;
+	struct STAT_ASSIGN tmp_stat_assign;
+	struct COND tmp_cond;
+	struct EXPR tmp_expr;
+	struct FACT tmp_fact;
+
+	tmp_func.next = NULL;
+
 	while(getline(inFile, line)){
 		isFinished = false;
 		REDUCE:
@@ -43,7 +73,13 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 1:
-				POP(3);
+				s.pop();
+				tmp_prog.word = new char[s.top().length()];
+				strcpy(tmp_prog.word, s.top().c_str());
+				tmp_prog.block = &block[block.size()-1];
+				prog.push_back(tmp_prog);
+				s.pop();
+				s.pop();
 				if(s.top() == "$"){
 					state = 0;
 					isFinished = true;
@@ -80,7 +116,11 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 5: 
-				POP(8);
+				POP(1);
+				tmp_word
+				POP(6);
+
+				POP(1);
 				s.push("prog");
 				s.push("1");
 				state = 1;
@@ -664,4 +704,9 @@ int main(int argc, char *argv[]){
 		inFile.close();
 		outFile.close();
 		exit(1);
+}
+
+
+int convertLang(){
+	return 0;	
 }

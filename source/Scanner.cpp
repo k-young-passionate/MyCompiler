@@ -1,9 +1,9 @@
 #include <fstream>
 #include <iostream>
 #include <stack>
-#include <vector>
 #include <string>
 #include <string.h>
+#include "functions.hpp"
 
 #define ISNUM(value) if(value >= '0' && value <= '9')
 #define ISCHAR(value) if((value >= 'a' && value <= 'z') || (value >= 'A' && value <= 'Z'))
@@ -11,22 +11,33 @@
 using namespace std;
 
 
-int main(int argc, char *argv[]){
-	string fname = argv[1];
-	string lname = argv[1];
+int scanner(char* filename){
+	string fname = filename;
+	string lname = filename;
+	string funcname;
+	string tmp = "";
+
 	fname += ".symbol";
 	lname += ".lex";
-	ifstream inFile(argv[1]);
+
+	ifstream inFile(filename);
 	ofstream outFile(fname);
 	ofstream lexFile(lname);
+
 	char buffer, past, pastchar;
+	
 	bool closeflag = false;
 	bool funcendflag = false;
+
 	int pcount = 0;
-	past = 0;
+	int whilecount = 0;
+	int ifcount = 0;
 	int index = 0;
-	string tmp = "";
-	vector<char*> symbols;
+	
+	stack<string> s;
+	stack<int> si;
+
+	past = 0;
 	while(inFile.get(buffer)){
 //		cout << buffer;
 		if(buffer != ' ' && buffer != '\t'){
@@ -36,12 +47,11 @@ int main(int argc, char *argv[]){
 						goto HERE;
 					break;
 				case '}':
-					if(pastchar == '{'){
-						lexFile << '%';
-						past = '%';
-					}
-					pcount--;
-					if(pcount == 0){
+//					if(pastchar == '{'){
+//						lexFile << '%';
+//						past = '%';
+//					}
+					if(--pcount == 0){
 						funcendflag = true;
 					}
 					closeflag = true;
@@ -54,8 +64,8 @@ int main(int argc, char *argv[]){
 				case '{':
 					if(!closeflag && buffer == '{'){
 						pcount++;
-						closeflag = false;
 					}
+					closeflag = false;
 				case ')':
 					if(past != '\n'){
 						lexFile << endl;
@@ -97,14 +107,17 @@ int main(int argc, char *argv[]){
 		}
 		
 	}
-	if(past == '\n')
-		lexFile << "%";
-	else
-		lexFile << endl << "%";
+//	if(past == '\n')
+//		lexFile << "%";
+//	else
+//		lexFile << endl << "%";
 	lexFile.close();
 	inFile.close();
+
+	cout << ".lex file has been generated." << endl;
+
 	ifstream linFile(lname);
-	outFile << "INDEX\t\tTYPE\t\tname\n";
+	outFile << "INDEX\t\tTYPE\t\tNAME\t\tSCOPE\n";
 	while(linFile.get(buffer)){
 		if(buffer == '\n')
 			continue;
@@ -112,9 +125,20 @@ int main(int argc, char *argv[]){
 			tmp += buffer;
 		} else {
 			if(tmp == "WHILE") {
-				outFile << index++ << "\t\t\tWHILE\t\t" << tmp << endl;
+				si.push(whilecount++);
+				s.push("WHILE");
 			} else if (tmp == "IF") {
-				outFile << index++ << "\t\t\tIF  \t\t" << tmp << endl;
+				
+			} else if (tmp == "THEN"){
+				
+				si.push(ifcount++);
+				s.push("IFTHEN");
+			
+			} else if (tmp == "ELSE"){
+				
+				si.push(ifcount);
+				s.push("IFELSE");
+
 			} else {
 				if( buffer == '(') {
 					while(linFile.get(buffer)){
@@ -122,15 +146,38 @@ int main(int argc, char *argv[]){
 							break;
 						}
 					}
-					if(buffer == ')')
-						outFile << index++ << "\t\t\tFUNC\t\t" << tmp << endl;
+					if(buffer == ')'){
+						funcname = tmp;
+						outFile << "----------------------------------------------------------------" << endl;
+						outFile << index++ << "\t\tFUNC\t\t" << tmp << "\t\t" <<  funcname << endl;
+						while(!s.empty()){
+							s.pop();
+						}
+						while(!si.empty()){
+							si.pop();
+						}
+						s.push(tmp);
+						whilecount = 0;
+						ifcount = 0;
+					}
 				} else if (buffer == '=') {
-					outFile << index++ << "\t\t\tVAR \t\t" << tmp << endl;
+					if(s.top() == "WHILE" || s.top() == "IF" || s.top() =="IFTHEN" || s.top() == "IFELSE")
+						outFile << index++ << "\t\tVAR \t\t" << tmp << "\t\t" << funcname <<  "-" << s.top() << "-" <<  si.top() << endl;
+					else
+						outFile << index++ << "\t\tVAR \t\t" << tmp << "\t\t" << s.top() << endl;
+				} else if (buffer == '}'){
+					if(!s.empty())
+						s.pop();
+					if(!si.empty()){
+						si.pop();
+					}
 				}
-				tmp = "";
 			}
+				tmp = "";
 		}
 	}
+
+	cout << "Symbol Table has been generated." << endl;
 
 	inFile.close();
 	outFile.close();

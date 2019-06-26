@@ -2,13 +2,24 @@ main(){
 	var=2;
 	a=1+2;
 	WHILE(a>2) {
+		d = 0;
+		IF(a>3)
+		THEN{
+			e = 2;
+		} ELSE{
+			hello = 3+ 1;
+		}
 		c=4;
+	}
+
+	WHILE(a>3){
+		e = 1;
 	}
 }
 
 el(){
 	b = 3;
-	IF(b<3+1)
+	IF(b<2+1)
 	THEN {
 		c = 1;
 	} ELSE {

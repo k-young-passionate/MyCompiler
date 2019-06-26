@@ -1,11 +1,15 @@
-INDEX		TYPE		name
-0			FUNC		main
-1			VAR 		var
-2			VAR 		a
-3			WHILE		WHILE
-4			VAR 		c
-5			FUNC		el
-6			VAR 		b
-7			IF  		IF
-8			VAR 		c
-9			VAR 		c
+INDEX		TYPE		NAME		SCOPE
+----------------------------------------------------------------
+0		FUNC		main		main
+1		VAR 		var		main
+2		VAR 		a		main
+3		VAR 		d		main-WHILE-0
+4		VAR 		e		main-IFTHEN-0
+5		VAR 		hello		main-IFELSE-1
+6		VAR 		c		main-WHILE-0
+7		VAR 		e		main-WHILE-1
+----------------------------------------------------------------
+8		FUNC		el		el
+9		VAR 		b		el
+10		VAR 		c		el-IFTHEN-0
+11		VAR 		c		el-IFELSE-1
