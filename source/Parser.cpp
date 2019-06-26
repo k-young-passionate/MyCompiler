@@ -3,6 +3,7 @@
 #include <string>
 #include <stack>
 #include <cstdlib>
+#include "functionStructure.h"
 using namespace std;
 
 #define ISNUM(value) (value >= '0' && value<= '9')
@@ -24,11 +25,9 @@ int main(int argc, char *argv[]){
 	ifstream inFile(fname);
 	ofstream outFile(oname);
 	
+	pointer->root->word = "hi";
 	while(getline(inFile, line)){
 		isFinished = false;
-		if(!s.empty()){
-			cout << s.top() << endl;
-		}
 		REDUCE:
 		switch(state){
 			case 0:
@@ -46,6 +45,7 @@ int main(int argc, char *argv[]){
 			case 1:
 				POP(3);
 				if(s.top() == "$"){
+					state = 0;
 					isFinished = true;
 				}
 				break;
@@ -75,6 +75,8 @@ int main(int argc, char *argv[]){
 					s.push(line);
 					s.push("6");
 					state = 6;
+				} else {
+					goto ERROR;
 				}
 				break;
 			case 5: 
@@ -125,18 +127,20 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 8:
-				if((ISCHAR(line.at(0)) && ONLYWORD(line)) || line.at(0) == "}" || line == "IF" || line == "WHILE"){
+				if((ISCHAR(line.at(0)) && ONLYWORD(line)) || line.at(0) == '}' || line == "IF" || line == "WHILE"){
 					POP(2);
 					a = s.top();
 					s.push("slist");
-					if(atoi(a) == 7){
+					if(atoi(a.c_str()) == 6){
 						s.push("7");
 						state = 7;
 						goto REDUCE;
 					} else {
 						goto ERROR;
 					}
-				}	
+				} else {
+					goto ERROR;
+				}
 				break;
 			case 9:
 				IGNORE(line.at(0));
@@ -169,19 +173,52 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 12:
-				if((ISCHAR(line.at(0)) && ONLYWORD(line))||line.at(0) == '}' && line == "IF" && line == "ELSE" && line =="WHILE" && line.at(0) == '%'){
-					s.pop();
-					s.pop();
-					s.pop();
-					s.pop();
-					s.pop();
-					s.pop();
+				if((ISCHAR(line.at(0)) && ONLYWORD(line))||line.at(0) == '}' || line == "IF" || line == "ELSE" || line =="WHILE" || line.at(0) == '%'){
+					POP(6);
+					a = s.top();
+					s.push("block");
+					switch(atoi(a.c_str())){
+						case 4:
+							s.push("5");
+							state = 5;
+							break;
+						case 28:
+							s.push("34");
+							state = 34;
+							break;
+						case 30:
+							s.push("35");
+							state = 35;
+							break;
+						case 36:
+							s.push("37");
+							state = 37;
+							break;
+						default:
+							goto ERROR;
+					}
+					goto REDUCE;
 				} else {
 					goto ERROR;
 				}
 				break;
 			case 13:
-				
+				if((ISCHAR(line.at(0)) && ONLYWORD(line)) || line.at(0) == '}' || line == "IF" || line =="WHILE"){
+					POP(4);
+					a = s.top();
+					s.push("slist");
+					switch(atoi(a.c_str())){
+						case 6:
+							s.push("7");
+							state = 7;
+							break;
+						default:
+							goto ERROR;
+					}
+					goto REDUCE;
+				} else {
+					goto ERROR;
+				}
 				break;
 			case 14:
 				IGNORE(line.at(0));
@@ -254,22 +291,91 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 19:
-				IGNORE(line.at(0));
-				if(line.at(0) == ';'){
-					s.push(line);
-					s.push("17");
-					state = 17;
+				if(line.at(0) == ')' || line.at(0) == ';' || line.at(0) =='>' || line.at(0) == '<' || line.at(0) == '+'){
+					POP(2);
+					a = s.top();
+					s.push("expr");
+					switch(atoi(a.c_str())){
+						case 14:
+						case 15:
+							s.push("18");
+							state = 18;
+							break;
+						case 16:
+							s.push("23");
+							state = 23;
+							break;
+						case 25:
+							s.push("31");
+							state = 31;
+							break;
+						case 26:
+							s.push("32");
+							state = 32;
+							break;
+						default:
+							goto ERROR;
+					}
+					goto REDUCE;
 				} else {
 					goto ERROR;
 				}
 				break;
 			case 20:
+				if(line.at(0) == ')' || line.at(0) == ';' || line.at(0) =='>' || line.at(0) == '<' || line.at(0) == '+'){
+					POP(2);
+					a = s.top();
+					s.push("fact");
+					switch(atoi(a.c_str())){
+						case 14:
+						case 15:
+						case 16:
+						case 25:
+						case 26:
+							s.push("19");
+							state = 19;
+							break;
+						case 27:
+							s.push("33");
+							state = 33;
+							break;
+						default:
+							goto ERROR;
+					}
+					goto REDUCE;
+				} else {
+					goto ERROR;
+				}
 				break;
 			case 21:
+				if(line.at(0) == ')' || line.at(0) == ';' || line.at(0) =='>' || line.at(0) == '<' || line.at(0) == '+'){
+					POP(2);
+					a = s.top();
+					s.push("fact");
+					switch(atoi(a.c_str())){
+						case 14:
+						case 15:
+						case 16:
+						case 25:
+						case 26:
+							s.push("19");
+							state = 19;
+							break;
+						case 27:
+							s.push("33");
+							state = 33;
+							break;
+						default:
+							goto ERROR;
+					}
+					goto REDUCE;
+				} else {
+					goto ERROR;
+				}
 				break;
 			case 22:
 				IGNORE(line.at(0));
-				if(line.at(0) == '}'){
+				if(line.at(0) == ')'){
 					s.push(line);
 					s.push("28");
 					state = 28;
@@ -354,7 +460,26 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 29:
-	
+				if((ISCHAR(line.at(0))&&ONLYWORD(line)) || line.at(0) == '}' || line == "IF" || line == "WHILE"){
+					POP(8);
+					a = s.top();
+					s.push("stat");
+					switch(atoi(a.c_str())){
+						case 6:
+							s.push("8");
+							state = 8;
+							break;
+						case 7:
+							s.push("13");
+							state = 13;
+							break;
+						default:
+							goto ERROR;
+					}
+					goto REDUCE;
+				} else {
+					goto ERROR;
+				}
 				break;
 			case 30:
 				IGNORE(line.at(0));
@@ -372,6 +497,23 @@ int main(int argc, char *argv[]){
 					s.push(line);
 					s.push("27");
 					state = 27;
+				} else if (line.at(0) == ')') {
+					POP(6);
+					a = s.top();
+					s.push("cond");
+					switch(atoi(a.c_str())){
+						case 14:
+							s.push("17");
+							state = 17;
+							break;
+						case 15:
+							s.push("22");
+							state = 22;
+							break;
+						default:
+							goto ERROR;
+					}
+					goto REDUCE;
 				} else {
 					goto ERROR;
 				}
@@ -382,15 +524,79 @@ int main(int argc, char *argv[]){
 					s.push(line);
 					s.push("27");
 					state = 27;
+				} else if (line.at(0) == ')') {
+					POP(6);
+					a = s.top();
+					s.push("cond");
+					switch(atoi(a.c_str())){
+						case 14:
+							s.push("17");
+							state = 17;
+							break;
+						case 15:
+							s.push("22");
+							state = 22;
+							break;
+						default:
+							goto ERROR;
+					}
+					goto REDUCE;
 				} else {
 					goto ERROR;
 				}
 				break;
 			case 33:
-				
+				if(line.at(0) == ')' || line.at(0) == ';' || line.at(0) =='>' || line.at(0) == '<' || line.at(0) == '+'){
+					POP(6);
+					a = s.top();
+					s.push("expr");
+					switch(atoi(a.c_str())){
+						case 14:
+						case 15:
+							s.push("18");
+							state = 18;
+							break;
+						case 16:
+							s.push("23");
+							state = 23;
+							break;
+						case 25:
+							s.push("31");
+							state = 31;
+							break;
+						case 26:
+							s.push("32");
+							state = 32;
+							break;
+						default:
+							goto ERROR;
+					}
+					goto REDUCE;
+				} else {
+					goto ERROR;
+				}	
 				break;
 			case 34:
-
+				if((ISCHAR(line.at(0))&&ONLYWORD(line)) || line.at(0) == '}' || line == "IF" || line == "WHILE"){
+					POP(10);
+					a = s.top();
+					s.push("stat");
+					switch(atoi(a.c_str())){
+						case 6:
+							s.push("8");
+							state = 8;
+							break;
+						case 7:
+							s.push("13");
+							state = 13;
+							break;
+						default:
+							goto ERROR;
+					}
+					goto REDUCE;
+				} else {
+					goto ERROR;
+				}
 				break;
 			case 35:
 				IGNORE(line.at(0));
@@ -413,6 +619,26 @@ int main(int argc, char *argv[]){
 				}
 				break;
 			case 37:
+				if((ISCHAR(line.at(0))&&ONLYWORD(line)) || line.at(0) == '}' || line == "IF" || line == "WHILE"){
+					POP(16);
+					a = s.top();
+					s.push("stat");
+					switch(atoi(a.c_str())){
+						case 6:
+							s.push("8");
+							state = 8;
+							break;
+						case 7:
+							s.push("13");
+							state = 13;
+							break;
+						default:
+							goto ERROR;
+					}
+					goto REDUCE;
+				} else {
+					goto ERROR;
+				}
 
 				break;
 			default:
@@ -426,6 +652,8 @@ int main(int argc, char *argv[]){
 		cout << "Unexpected Termination." << endl;
 		goto ERROR;
 	}
+
+	cout << "Parsing has been successfully completed." << endl;
 
 	inFile.close();
 	outFile.close();

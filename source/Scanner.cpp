@@ -4,22 +4,12 @@
 #include <vector>
 #include <string>
 #include <string.h>
-#include "tmp.h"
 
-#define USELESS while(true){ inFile.get(buffer); if(!(buffer==' '||buffer=='\t')) break; }
 #define ISNUM(value) if(value >= '0' && value <= '9')
 #define ISCHAR(value) if((value >= 'a' && value <= 'z') || (value >= 'A' && value <= 'Z'))
 
 using namespace std;
 
-struct SYM{
-	TYPE_E type;
-	char * name;
-};
-
-int getblock(){
-	return 0;
-}
 
 int main(int argc, char *argv[]){
 	string fname = argv[1];
@@ -30,6 +20,9 @@ int main(int argc, char *argv[]){
 	ofstream outFile(fname);
 	ofstream lexFile(lname);
 	char buffer, past, pastchar;
+	bool closeflag = false;
+	bool funcendflag = false;
+	int pcount = 0;
 	past = 0;
 	int index = 0;
 	string tmp = "";
@@ -47,6 +40,11 @@ int main(int argc, char *argv[]){
 						lexFile << '%';
 						past = '%';
 					}
+					pcount--;
+					if(pcount == 0){
+						funcendflag = true;
+					}
+					closeflag = true;
 				case ';':
 				case '(':
 				case '=':
@@ -54,6 +52,10 @@ int main(int argc, char *argv[]){
 				case '<':
 				case '>':
 				case '{':
+					if(!closeflag && buffer == '{'){
+						pcount++;
+						closeflag = false;
+					}
 				case ')':
 					if(past != '\n'){
 						lexFile << endl;
@@ -74,24 +76,19 @@ int main(int argc, char *argv[]){
 								ISCHAR(past){
 
 								} else {
-									if(pastchar == ')'){
-										lexFile << '%';
-									}
 									lexFile << endl;
 									past = '\n';
 								}
 							}
 						}
 					}
-					ISCHAR(buffer){
-						if(pastchar == ')'){
-							lexFile << '%' << endl;
-						}
-						past = '%';
-					}
 					break;
 			}
 						lexFile << buffer;
+						if(funcendflag){
+							lexFile << endl << "%";
+							funcendflag = false;
+						}
 			HERE:
 				if(buffer != '\n'){
 					pastchar = buffer;
@@ -100,6 +97,10 @@ int main(int argc, char *argv[]){
 		}
 		
 	}
+	if(past == '\n')
+		lexFile << "%";
+	else
+		lexFile << endl << "%";
 	lexFile.close();
 	inFile.close();
 	ifstream linFile(lname);
@@ -135,9 +136,4 @@ int main(int argc, char *argv[]){
 	outFile.close();
 	return 0;
 
-	ERROR:
-		cout << SYNTAXERROR;
-		inFile.close();
-		outFile.close();
-		exit(1);
 }

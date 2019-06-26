@@ -5,4 +5,7 @@ INDEX		TYPE		name
 3			WHILE		WHILE
 4			VAR 		c
 5			FUNC		el
-6			FUNC		hi
+6			VAR 		b
+7			IF  		IF
+8			VAR 		c
+9			VAR 		c

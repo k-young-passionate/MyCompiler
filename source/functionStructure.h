@@ -18,12 +18,17 @@ typedef enum
 typedef enum
 {ENUM_NUM, ENUM_WORD} Fact_e;
 
+struct FUNC {
+	struct FUNC * next;
+	struct PROG * root;
+};
+
+static struct FUNC * pointer;
+
 struct PROG {
 	char * word;
 	struct BLOCK * block;
 };
-
-struct PROG * root;
 
 struct BLOCK {
 	Block_e be;
@@ -38,6 +43,9 @@ struct SLIST {
 
 struct STAT {
 	Stat_e se;
+	struct STAT_IF *statif;
+	struct STAT_WHILE *statwhile;
+	struct STAT_IF *statassign;
 };
 
 struct STAT_IF{
