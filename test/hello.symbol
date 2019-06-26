@@ -4,3 +4,4 @@ INDEX		TYPE		name
 2			VAR 		a
 3			VAR 		c
 4			FUNC		el
+5			FUNC		hi

@@ -42,11 +42,13 @@ int main(int argc, char *argv[]){
 					if(past == '\n')
 						goto HERE;
 					break;
+				case '}':
+					if(past == '{')
+						lexFile << endl;
 				case ';':
 				case '(':
 				case ')':
 				case '{':
-				case '}':
 				case '=':
 				case '+':
 				case '<':
@@ -70,6 +72,9 @@ int main(int argc, char *argv[]){
 								ISCHAR(past){
 
 								} else {
+									if(past == ')'){
+										lexFile << endl;
+									}
 									lexFile << endl;
 									past = '\n';
 								}
@@ -94,18 +99,24 @@ int main(int argc, char *argv[]){
 		if((buffer >= 'a' && buffer <= 'z') || (buffer >= 'A' && buffer <='Z')){
 			tmp += buffer;
 		} else {
-			if( buffer == '(') {
-				while(linFile.get(buffer)){
-					if(buffer != '\n'){
-						break;
+			if(tmp == "WHILE") {
+				outFile << index++ << "\t\t\tWHILE\t\t" << tmp << endl;
+			} else if (tmp == "IF") {
+				outFile << index++ << "\t\t\tIF  \t\t" << tmp << endl;
+			} else {
+				if( buffer == '(') {
+					while(linFile.get(buffer)){
+						if(buffer != '\n'){
+							break;
+						}
 					}
+					if(buffer == ')')
+						outFile << index++ << "\t\t\tFUNC\t\t" << tmp << endl;
+				} else if (buffer == '=') {
+					outFile << index++ << "\t\t\tVAR \t\t" << tmp << endl;
 				}
-				if(buffer == ')')
-					outFile << index++ << "\t\t\tFUNC\t\t" << tmp << endl;
-			} else if (buffer == '=') {
-				outFile << index++ << "\t\t\tVAR \t\t" << tmp << endl;
+				tmp = "";
 			}
-			tmp = "";
 		}
 	}
 
