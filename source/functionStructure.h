@@ -21,8 +21,6 @@ struct FUNC {
 	struct PROG * root;
 };
 
-static struct FUNC * pointer;
-
 struct PROG {
 	char * word;
 	struct BLOCK * block;
@@ -30,13 +28,13 @@ struct PROG {
 
 struct BLOCK {
 	Block_e be;
-	struct slist * sl;
+	struct SLIST * sl;
 };
 
 struct SLIST {
 	Slist_e se;
-	struct slist * sl;
-	struct stat * s;
+	struct SLIST * sl;
+	struct STAT * s;
 };
 
 struct STAT {
@@ -78,6 +76,14 @@ struct EXPR {
 struct FACT {
 	Fact_e fe;
 	int num;
+	char * word;
+};
+
+struct WORD{
 	char *word;
+};
+
+struct NUM{
+	int num;
 };
 

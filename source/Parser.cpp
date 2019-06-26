@@ -4,6 +4,7 @@
 #include <stack>
 #include <vector>
 #include <cstdlib>
+#include <stdlib.h>
 #include "functions.hpp"
 #include "functionStructure.h"
 using namespace std;
@@ -25,18 +26,22 @@ vector<struct STAT_ASSIGN> stat_assign;
 vector<struct COND> cond;
 vector<struct EXPR> expr;
 vector<struct FACT> fact;
+vector<struct WORD> word;
+vector<struct NUM> num;
+
+int convertLang(string oname);
 
 int parser(char* filename){
 	string fname = filename;
 	string oname = filename;
 	string line;
 	string a,b,c,d;
+	string funcname;
 	
 	fname += ".lex";
 	oname += ".code";
 
 	ifstream inFile(fname);
-	ofstream outFile(oname);
 
 	bool isFinished;
 	int state = 0;
@@ -54,10 +59,26 @@ int parser(char* filename){
 	struct EXPR tmp_expr;
 	struct FACT tmp_fact;
 
-	tmp_func.next = NULL;
+	int func_index = 0;
+	int prog_index = 0;
+	int block_index =0;
+	int slist_index = 0;
+	int stat_index = 0;
+	int stat_if_index = 0;
+	int stat_while_index=0;
+	int stat_assign_index = 0;
+	int cond_index = 0;
+	int expr_index = 0;
+	int fact_index = 0;
+
 
 	while(getline(inFile, line)){
 		isFinished = false;
+		if(!s.empty()){
+			cout << s.top() << endl;
+		} 
+
+		cout << line << endl;
 		REDUCE:
 		switch(state){
 			case 0:
@@ -73,13 +94,10 @@ int parser(char* filename){
 				}
 				break;
 			case 1:
-				s.pop();
-				tmp_prog.word = new char[s.top().length()];
-				strcpy(tmp_prog.word, s.top().c_str());
-				tmp_prog.block = &block[block.size()-1];
-				prog.push_back(tmp_prog);
-				s.pop();
-				s.pop();
+				POP(1);
+				tmp_func.root = &prog[atoi(s.top().c_str())];
+				POP(2);
+				func.push_back(tmp_func);
 				if(s.top() == "$"){
 					state = 0;
 					isFinished = true;
@@ -111,15 +129,19 @@ int parser(char* filename){
 					s.push(line);
 					s.push("6");
 					state = 6;
+					tmp_block.be = ENUM_BLOCK;
+					tmp_block.sl = NULL;
 				} else {
 					goto ERROR;
 				}
 				break;
 			case 5: 
 				POP(1);
-				tmp_word
+				tmp_prog.block = &block[atoi(s.top().c_str())];
 				POP(6);
-
+				tmp_prog.word = new char[s.top().length()];
+				strcpy(tmp_prog.word, s.top().c_str());
+				prog.push_back(tmp_prog);
 				POP(1);
 				s.push("prog");
 				s.push("1");
@@ -168,9 +190,13 @@ int parser(char* filename){
 				break;
 			case 8:
 				if((ISCHAR(line.at(0)) && ONLYWORD(line)) || line.at(0) == '}' || line == "IF" || line == "WHILE"){
-					POP(2);
+					tmp_slist.se = ENUM_STAT;
+					POP(1);
+					tmp_slist.sl = &slist[atoi(s.top().c_str())];
+					POP(1);
 					a = s.top();
-					s.push("slist");
+					slist.push_back(tmp_slist);
+					s.push(to_string(slist.size() - 1));
 					if(atoi(a.c_str()) == 6){
 						s.push("7");
 						state = 7;
@@ -214,9 +240,12 @@ int parser(char* filename){
 				break;
 			case 12:
 				if((ISCHAR(line.at(0)) && ONLYWORD(line))||line.at(0) == '}' || line == "IF" || line == "ELSE" || line =="WHILE" || line.at(0) == '%'){
-					POP(6);
+					POP(3);
+					tmp_block.sl = &slist[atoi(s.top().c_str())]; 
+					POP(3);
 					a = s.top();
-					s.push("block");
+					block.push_back(tmp_block);
+					s.push(to_string(block.size()-1));
 					switch(atoi(a.c_str())){
 						case 4:
 							s.push("5");
@@ -244,9 +273,15 @@ int parser(char* filename){
 				break;
 			case 13:
 				if((ISCHAR(line.at(0)) && ONLYWORD(line)) || line.at(0) == '}' || line == "IF" || line =="WHILE"){
-					POP(4);
+					POP(1);
+					tmp_slist.se = ENUM_SLIST;
+					tmp_slist.sl = &slist[atoi(s.top().c_str())];
+					POP(2);
+					tmp_slist.s = &stat[atoi(s.top().c_str())];
+					POP(1);
+					slist.push_back(tmp_slist);
 					a = s.top();
-					s.push("slist");
+					s.push(to_string(slist.size()-1));
 					switch(atoi(a.c_str())){
 						case 6:
 							s.push("7");
@@ -332,9 +367,13 @@ int parser(char* filename){
 				break;
 			case 19:
 				if(line.at(0) == ')' || line.at(0) == ';' || line.at(0) =='>' || line.at(0) == '<' || line.at(0) == '+'){
-					POP(2);
+					POP(1);
+					tmp_expr.ee = ENUM_FACT; 
+					tmp_expr.f = &fact[atoi(s.top().c_str())];
+					POP(1);
+					expr.push_back(tmp_expr);
 					a = s.top();
-					s.push("expr");
+					s.push(to_string(expr.size()-1));
 					switch(atoi(a.c_str())){
 						case 14:
 						case 15:
@@ -363,9 +402,13 @@ int parser(char* filename){
 				break;
 			case 20:
 				if(line.at(0) == ')' || line.at(0) == ';' || line.at(0) =='>' || line.at(0) == '<' || line.at(0) == '+'){
-					POP(2);
+					POP(1);
+					tmp_fact.fe = ENUM_NUM;
+					tmp_fact.num = atoi(s.top().c_str());
+					POP(1);
+					fact.push_back(tmp_fact);
 					a = s.top();
-					s.push("fact");
+					s.push(to_string(fact.size() - 1));
 					switch(atoi(a.c_str())){
 						case 14:
 						case 15:
@@ -389,9 +432,14 @@ int parser(char* filename){
 				break;
 			case 21:
 				if(line.at(0) == ')' || line.at(0) == ';' || line.at(0) =='>' || line.at(0) == '<' || line.at(0) == '+'){
-					POP(2);
+					POP(1);
+					tmp_fact.fe = ENUM_WORD;
+					tmp_fact.word = new char[s.top().length()];
+					strcpy(tmp_fact.word, (s.top().c_str()));
+					POP(1);
+					fact.push_back(tmp_fact);
 					a = s.top();
-					s.push("fact");
+					s.push(to_string(fact.size() - 1));
 					switch(atoi(a.c_str())){
 						case 14:
 						case 15:
@@ -501,9 +549,15 @@ int parser(char* filename){
 				break;
 			case 29:
 				if((ISCHAR(line.at(0))&&ONLYWORD(line)) || line.at(0) == '}' || line == "IF" || line == "WHILE"){
-					POP(8);
+					POP(1);
+					tmp_stat_assign.expr = &expr[atoi(s.top().c_str())];
+					POP(4);
+					tmp_stat_assign.word = new char[s.top().length()];
+					strcpy(tmp_stat_assign.word, s.top().c_str());
+					POP(3);
+					stat_assign.push_back(tmp_stat_assign);
 					a = s.top();
-					s.push("stat");
+					s.push(to_string(stat_assign.size()-1));
 					switch(atoi(a.c_str())){
 						case 6:
 							s.push("8");
@@ -538,9 +592,15 @@ int parser(char* filename){
 					s.push("27");
 					state = 27;
 				} else if (line.at(0) == ')') {
-					POP(6);
+					POP(1);
+					tmp_cond.e2 = &expr[atoi(s.top().c_str())];
+					POP(4);
+					tmp_cond.c = '>';
+					tmp_cond.e1 = &expr[atoi(s.top().c_str())];
+					POP(1);
+					cond.push_back(tmp_cond);
 					a = s.top();
-					s.push("cond");
+					s.push(to_string(cond.size() - 1));
 					switch(atoi(a.c_str())){
 						case 14:
 							s.push("17");
@@ -565,9 +625,15 @@ int parser(char* filename){
 					s.push("27");
 					state = 27;
 				} else if (line.at(0) == ')') {
-					POP(6);
+					POP(1);
+					tmp_cond.e2 = &expr[atoi(s.top().c_str())];
+					POP(4);
+					tmp_cond.c = '<';
+					tmp_cond.e1 = &expr[atoi(s.top().c_str())];
+					POP(1);
+					cond.push_back(tmp_cond);
 					a = s.top();
-					s.push("cond");
+					s.push(to_string(cond.size() - 1));
 					switch(atoi(a.c_str())){
 						case 14:
 							s.push("17");
@@ -587,9 +653,15 @@ int parser(char* filename){
 				break;
 			case 33:
 				if(line.at(0) == ')' || line.at(0) == ';' || line.at(0) =='>' || line.at(0) == '<' || line.at(0) == '+'){
-					POP(6);
+					POP(1);
+					tmp_expr.f = &fact[atoi(s.top().c_str())];
+					POP(4);
+					tmp_expr.ee = ENUM_ADDITION;
+					tmp_expr.expr = &expr[atoi(s.top().c_str())];
+					POP(1);
+					expr.push_back(tmp_expr);
 					a = s.top();
-					s.push("expr");
+					s.push(to_string(expr.size()-1));
 					switch(atoi(a.c_str())){
 						case 14:
 						case 15:
@@ -618,9 +690,14 @@ int parser(char* filename){
 				break;
 			case 34:
 				if((ISCHAR(line.at(0))&&ONLYWORD(line)) || line.at(0) == '}' || line == "IF" || line == "WHILE"){
-					POP(10);
+					POP(1);
+					tmp_stat_while.block = &block[atoi(s.top().c_str())];
+					POP(4);
+					tmp_stat_while.cond = &cond[atoi(s.top().c_str())];
+					POP(5);
+					stat_while.push_back(tmp_stat_while);
 					a = s.top();
-					s.push("stat");
+					s.push(to_string(stat_while.size() - 1));
 					switch(atoi(a.c_str())){
 						case 6:
 							s.push("8");
@@ -660,9 +737,16 @@ int parser(char* filename){
 				break;
 			case 37:
 				if((ISCHAR(line.at(0))&&ONLYWORD(line)) || line.at(0) == '}' || line == "IF" || line == "WHILE"){
-					POP(16);
+					POP(1);
+					tmp_stat_if.elseblock = &block[atoi(s.top().c_str())];
+					POP(4);
+					tmp_stat_if.ifblock = &block[atoi(s.top().c_str())];
+					POP(6);
+					tmp_stat_if.cond = &cond[atoi(s.top().c_str())];
+					POP(5);
+					stat_if.push_back(tmp_stat_if);
 					a = s.top();
-					s.push("stat");
+					s.push(to_string(stat_if.size() - 1));
 					switch(atoi(a.c_str())){
 						case 6:
 							s.push("8");
@@ -694,19 +778,27 @@ int parser(char* filename){
 	}
 
 	cout << "Parsing has been successfully completed." << endl;
-
 	inFile.close();
-	outFile.close();
+	convertLang(oname);
 	return 0;
 
 	ERROR:
 		cout << "COMPILE ERROR" << endl;
 		inFile.close();
-		outFile.close();
 		exit(1);
 }
 
 
-int convertLang(){
+int convertLang(string oname){
+
+	ofstream outFile(oname);
+	stack<void*> s;
+	for(int i=func.size()-1;i>=0;i++){
+//		outFile << "BEGIN " << (func[i].root)->word;
+
+//		outFile << "END " << (func[i].root)->word;
+	}
+
+	outFile.close();
 	return 0;	
 }
